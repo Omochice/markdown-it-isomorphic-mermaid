@@ -25,6 +25,9 @@
   ],
   "scripts": {
     "build": "tsgo",
+    "check": "run-p check:*",
+    "check:biome": "biome check",
+    "check:type": "tsgo --noEmit",
     "fmt": "run-p fmt:*",
     "fmt:biome": "biome check --write --unsafe",
     "fmt:sort-package-json": "sort-package-json",
