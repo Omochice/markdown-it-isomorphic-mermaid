@@ -36,6 +36,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
+    "@tsconfig/node24": "^24.0.4",
+    "@tsconfig/strictest": "^2.0.8",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^25.5.0",
     "@typescript/native-preview": "7.0.0-dev.20260324.1",
