@@ -1,81 +1,41 @@
-import mermaid from "isomorphic-mermaid";
 import type MarkdownIt from "markdown-it";
-import type { Options } from "markdown-it";
-import type Renderer from "markdown-it/lib/renderer.mjs";
-import type Token from "markdown-it/lib/token.mjs";
+import { mermaidPlugin as fencePlugin } from "./plugin.ts";
+import { renderMermaidInHtml } from "./render.ts";
 
-interface MermaidEntry {
-  id: string;
-  content: string;
-}
+export { renderAsync, renderMermaidInHtml } from "./render.ts";
+export { fencePlugin as mermaidFencePlugin };
 
-interface MermaidEnv {
-  __mermaid?: MermaidEntry[];
+interface MarpitRenderResult {
+  html: string;
+  css: string;
+  comments: string[][];
 }
 
 /**
- * markdown-it plugin that renders mermaid code blocks to SVG
- * using isomorphic-mermaid.
+ * markdown-it plugin that replaces mermaid code blocks with
+ * `<pre class="mermaid">` elements and wraps `md.render()` to
+ * asynchronously replace them with server-rendered SVG.
  *
- * Since mermaid rendering is asynchronous, use {@link renderAsync}
- * instead of `md.render()` to get the final HTML with rendered diagrams.
+ * For Marp CLI v3.2.1+, `marp.use(mermaidPlugin)` is sufficient.
+ * Marp CLI awaits the async render result automatically.
+ *
+ * For environments that do not support async render, use
+ * `mermaidFencePlugin` from this module or import from the
+ * `./plugin` subpath instead.
  */
 export function mermaidPlugin(md: MarkdownIt): void {
-  const defaultFence =
-    md.renderer.rules.fence ??
-    ((
-      tokens: Token[],
-      idx: number,
-      options: Options,
-      _env: unknown,
-      self: Renderer,
-    ) => self.renderToken(tokens, idx, options));
+  fencePlugin(md);
 
-  md.renderer.rules.fence = (tokens, idx, options, env, self) => {
-    const token = tokens[idx];
-    if (token === undefined) {
-      return "";
+  const originalRender = md.render.bind(md);
+  // Marpit.render returns {html, css, comments}, markdown-it returns string.
+  // Marp CLI v3.2.1+ awaits the return value of render().
+  const asyncRender = async (...args: Parameters<typeof md.render>) => {
+    const result = originalRender(...args) as string | MarpitRenderResult;
+    if (typeof result === "object" && "html" in result) {
+      result.html = await renderMermaidInHtml(result.html);
+      return result;
     }
-    if (token.info.trim() === "mermaid") {
-      const mermaidEnv = env as MermaidEnv;
-      const id = `mermaid-${idx}`;
-      if (!mermaidEnv.__mermaid) {
-        mermaidEnv.__mermaid = [];
-      }
-      mermaidEnv.__mermaid.push({ id, content: token.content });
-      return `<div data-mermaid-placeholder="${id}"></div>`;
-    }
-    return defaultFence(tokens, idx, options, env, self);
+    return renderMermaidInHtml(result);
   };
-}
-
-/**
- * Render markdown to HTML with mermaid diagrams resolved to SVG.
- *
- * @param md - markdown-it instance with {@link mermaidPlugin} applied
- * @param src - markdown source string
- * @param env - optional environment object passed to markdown-it
- * @returns HTML string with mermaid code blocks replaced by rendered SVG
- */
-export async function renderAsync(
-  md: MarkdownIt,
-  src: string,
-  env: Record<string, unknown> = {},
-): Promise<string> {
-  let html = md.render(src, env);
-
-  const mermaidEnv = env as MermaidEnv;
-  if (!mermaidEnv.__mermaid) {
-    return html;
-  }
-
-  for (const entry of mermaidEnv.__mermaid) {
-    const { svg } = await mermaid.render(entry.id, entry.content);
-    html = html.replace(
-      `<div data-mermaid-placeholder="${entry.id}"></div>`,
-      svg,
-    );
-  }
-
-  return html;
+  Object.defineProperty(md, "render", { value: asyncRender });
 }
