@@ -2,21 +2,24 @@
   "name": "@omochice/markdown-it-isomorphic-mermaid",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "Zlib",
+  "author": "",
   "main": "index.js",
   "scripts": {
+    "fmt": "run-p fmt:*",
+    "fmt:biome": "biome check --write --unsafe",
+    "fmt:sort-package-json": "sort-package-json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.32.1",
+  "dependencies": {
+    "isomorphic-mermaid": "^0.1.1"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "clean-pkg-json": "^1.4.1",
     "npm-run-all2": "^8.0.4",
     "sort-package-json": "^3.6.1"
   },
-  "dependencies": {
-    "isomorphic-mermaid": "^0.1.1"
-  }
+  "packageManager": "pnpm@10.32.1"
 }
