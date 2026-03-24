@@ -32,8 +32,10 @@ export function mermaidPlugin(md: MarkdownIt): void {
     ) => self.renderToken(tokens, idx, options));
 
   md.renderer.rules.fence = (tokens, idx, options, env, self) => {
-    // markdown-it guarantees idx is valid when calling fence renderer
-    const token = tokens[idx]!;
+    const token = tokens[idx];
+    if (token === undefined) {
+      return "";
+    }
     if (token.info.trim() === "mermaid") {
       const mermaidEnv = env as MermaidEnv;
       const id = `mermaid-${idx}`;
