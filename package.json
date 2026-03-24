@@ -31,7 +31,7 @@
     "fmt": "run-p fmt:*",
     "fmt:biome": "biome check --write --unsafe",
     "fmt:sort-package-json": "sort-package-json",
-    "test": "node --test dist/**/*.test.js"
+    "test": "node --test src/**/*.test.ts"
   },
   "dependencies": {
     "isomorphic-mermaid": "^0.1.1",
