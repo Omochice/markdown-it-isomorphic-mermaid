@@ -39,7 +39,9 @@
     "fmt": "run-p fmt:*",
     "fmt:biome": "biome check --write --unsafe",
     "fmt:sort-package-json": "sort-package-json",
-    "test": "node --test src/**/*.test.ts"
+    "test": "node --test src/**/*.test.ts",
+    "prepack": "npm-run-all2 --sequential build prepack:*",
+    "prepack:clean-package": "clean-pkg-json"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
